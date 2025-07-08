@@ -4,12 +4,18 @@ import { useState } from "react";
 import ColorPicker from "./components/ColorPicker";
 import Button from "./components/button";
 import { Sun, PaintBucket } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import GradientPicker from "./components/GradientPicker";
+
 
 export default function Home() {
   const [textType, setTextType] = useState(1);
   const [bgColor, setBgColor] = useState("#111111");
   const [textColor, setTextColor] = useState("#ffffff");
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [gradientBg, setGradientBg] = useState("");  
+
+
 
   const flipColors = () => {
     setBgColor((prev) => (prev === "#ffffff" ? "#111111" : "#ffffff"));
@@ -17,11 +23,10 @@ export default function Home() {
   };
 
   return (
-    <>
-      {/* Top Bar */}
+    <div style={{ backgroundImage: gradientBg }} className="relative">
       <div
         className="absolute space-x-4 pl-10 pt-10 flex items-center"
-        style={{ backgroundColor: bgColor, color: textColor }}
+        style={{ color: textColor }}
       >
         <Sun className="cursor-pointer" onClick={flipColors} />
         <PaintBucket
@@ -41,10 +46,9 @@ export default function Home() {
           className={`${textType === 2 ? "bg-black text-white" : ""}`}
         />
       </div>
-
       <div
         className="font-mono min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundColor: bgColor, color: textColor }}
+        style={{ backgroundImage: gradientBg, color: textColor }}
       >
         {textType === 2 && (
           <input
@@ -63,18 +67,32 @@ export default function Home() {
         )}
       </div>
 
-      {showColorPicker && (
-        <div className="absolute space-x-4 bottom-0 right-0 m-5 flex items-center justify-center">
-          <div>
-            <p className="text-sm mb-1 text-gray-500">Background</p>
-            <ColorPicker color={bgColor} onColorChange={setBgColor} />
-          </div>
-          <div>
-            <p className="text-sm mb-1 text-gray-500">Text</p>
-            <ColorPicker color={textColor} onColorChange={setTextColor} />
-          </div>
-        </div>
-      )}
-    </>
+      <AnimatePresence>
+
+        {showColorPicker && (
+          <motion.div
+            className="fixed bottom-0 right-0 rounded-lg shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+          >
+            <div className="absolute space-x-4 bottom-0 right-0 m-5 flex  justify-center">
+              <div>
+                <p className="text-sm mb-1 text-gray-500">Background</p>
+                <ColorPicker color={bgColor} onColorChange={setBgColor} />
+              </div>
+              <div>
+                <p className="text-sm mb-1 text-gray-500">Text</p>
+                <ColorPicker color={textColor} onColorChange={setTextColor} />
+              </div>
+              <div>
+                <p className="text-sm mb-1 text-gray-500">Gradient</p>
+                <GradientPicker onGradientChange={setGradientBg} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence >
+    </div>
   );
 }
