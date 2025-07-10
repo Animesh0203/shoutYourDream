@@ -114,7 +114,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
           >
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-between items-start sm:items-center p-6 bg-white/10 backdrop-blur-md border-t border-white/20 shadow-2xl rounded-t-xl">
+            <div className="flex flex-col h-screen sm:h-1/2 sm:flex-row gap-6 sm:gap-10 justify-between overflow-y-auto items-start sm:items-center p-6 bg-white/10 backdrop-blur-md border-t border-white/20 shadow-2xl rounded-t-xl">
               {/* Solid Color Pickers */}
               <div className="space-y-4 w-full sm:w-1/4">
                 <div>
