@@ -7,25 +7,43 @@ import { Sun, PaintBucket } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GradientPicker from "./components/GradientPicker";
 
-
 export default function Home() {
   const [textType, setTextType] = useState(1);
   const [bgColor, setBgColor] = useState("#111111");
   const [textColor, setTextColor] = useState("#ffffff");
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [gradientBg, setGradientBg] = useState("");  
+  const [gradientBg, setGradientBg] = useState("");
+  const [isGradientEnabled, setIsGradientEnabled] = useState(false);
 
-
+  // Gradient editor state
+  const [gradientColors, setGradientColors] = useState([
+    { color: "#ff0000", stop: 10 },
+    { color: "#00ff00", stop: 60 },
+    { color: "#0000ff", stop: 90 }
+  ]);
+  const [gradientCenterX, setGradientCenterX] = useState(50);
+  const [gradientCenterY, setGradientCenterY] = useState(50);
+  const [linearGradColor1, setLinearGradColor1] = useState("rgba(0,0,255,1)");
+  const [linearGradColor2, setLinearGradColor2] = useState("rgba(0,0,0,0)");
+  const [showNoise, setShowNoise] = useState(false);
 
   const flipColors = () => {
-    setBgColor((prev) => (prev === "#ffffff" ? "#111111" : "#ffffff"));
-    setTextColor((prev) => (prev === "#111111" ? "#ffffff" : "#111111"));
+    setBgColor(prev => (prev === "#ffffff" ? "#111111" : "#ffffff"));
+    setTextColor(prev => (prev === "#111111" ? "#ffffff" : "#111111"));
   };
 
   return (
-    <div style={{ backgroundImage: gradientBg }} className="relative">
+    <div
+      style={
+        isGradientEnabled && gradientBg
+          ? { backgroundImage: gradientBg }
+          : { backgroundColor: bgColor }
+      }
+      className="relative min-h-screen w-full transition-all"
+    >
+      {/* Top Controls */}
       <div
-        className="absolute space-x-4 pl-10 pt-10 flex items-center"
+        className="absolute flex flex-wrap gap-2 px-4 py-4 sm:px-10 sm:py-10 items-center z-20"
         style={{ color: textColor }}
       >
         <Sun className="cursor-pointer" onClick={flipColors} />
@@ -37,62 +55,103 @@ export default function Home() {
           onClick={() => setTextType(1)}
           text="Paragraph"
           style={{ color: textColor, backgroundColor: bgColor }}
-          className={`${textType === 1 ? "bg-black text-white" : ""}`}
+          className={`px-3 py-1 rounded-md text-sm ${textType === 1 ? "bg-black text-white" : ""
+            }`}
         />
         <Button
           onClick={() => setTextType(2)}
           text="Single Line"
           style={{ color: textColor, backgroundColor: bgColor }}
-          className={`${textType === 2 ? "bg-black text-white" : ""}`}
+          className={`px-3 py-1 rounded-md text-sm ${textType === 2 ? "bg-black text-white" : ""
+            }`}
         />
       </div>
+
+      {/* Editable Text Area */}
       <div
-        className="font-mono min-h-screen flex items-center justify-center p-4"
-        style={{ backgroundImage: gradientBg, color: textColor }}
+        className="font-mono min-h-screen flex items-center justify-center p-4 pt-32 sm:pt-40"
+        style={
+          isGradientEnabled && gradientBg
+            ? { backgroundImage: gradientBg, color: textColor }
+            : { backgroundColor: bgColor, color: textColor }
+        }
       >
         {textType === 2 && (
           <input
-            contentEditable="true"
             type="text"
-            className="focus:outline-none w-6xl text-4xl p-2"
+            className="focus:outline-none w-full max-w-3xl text-2xl sm:text-4xl p-2 bg-transparent"
             style={{ color: textColor }}
           />
         )}
         {textType === 1 && (
-          <textarea contentEditable="true"
-            className="focus:outline-none w-6xl text-4xl p-2 resize-none"
+          <textarea
+            className="focus:outline-none w-full max-w-3xl text-xl sm:text-4xl p-2 resize-none bg-transparent"
             rows={10}
             style={{ color: textColor }}
           />
         )}
       </div>
 
+      {/* Color Picker Modal */}
       <AnimatePresence>
-
         {showColorPicker && (
           <motion.div
-            className="fixed bottom-0 right-0 rounded-lg shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
+            className="fixed w-full bottom-0 right-0 z-50"
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            exit={{ opacity: 0, y: 40 }}
           >
-            <div className="absolute space-x-4 bottom-0 right-0 m-5 flex  justify-center">
-              <div>
-                <p className="text-sm mb-1 text-gray-500">Background</p>
-                <ColorPicker color={bgColor} onColorChange={setBgColor} />
+            <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-between items-start sm:items-center p-6 bg-white/10 backdrop-blur-md border-t border-white/20 shadow-2xl rounded-t-xl">
+              {/* Solid Color Pickers */}
+              <div className="space-y-4 w-full sm:w-1/4">
+                <div>
+                  <p className="text-sm mb-2 text-white font-medium">Background</p>
+                  <ColorPicker color={bgColor} onColorChange={setBgColor} />
+                </div>
+                <div>
+                  <p className="text-sm mb-2 text-white font-medium">Text</p>
+                  <ColorPicker color={textColor} onColorChange={setTextColor} />
+                </div>
               </div>
-              <div>
-                <p className="text-sm mb-1 text-gray-500">Text</p>
-                <ColorPicker color={textColor} onColorChange={setTextColor} />
-              </div>
-              <div>
-                <p className="text-sm mb-1 text-gray-500">Gradient</p>
-                <GradientPicker onGradientChange={setGradientBg} />
+
+              {/* Gradient Picker Section */}
+              <div className="flex-1 w-full">
+                <label className="flex items-center gap-3 text-white mb-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isGradientEnabled}
+                    onChange={(e) => setIsGradientEnabled(e.target.checked)}
+                    className="w-4 h-4 accent-pink-500"
+                  />
+                  <div
+                    className="w-6 h-6 rounded-full border border-white"
+                    style={{ backgroundImage: gradientBg }}
+                  />
+                  <span className="text-sm font-medium">Enable Gradient</span>
+                </label>
+
+                <GradientPicker
+                  colors={gradientColors}
+                  setColors={setGradientColors}
+                  centerX={gradientCenterX}
+                  setCenterX={setGradientCenterX}
+                  centerY={gradientCenterY}
+                  setCenterY={setGradientCenterY}
+                  linearGradColor1={linearGradColor1}
+                  setLinearGradColor1={setLinearGradColor1}
+                  linearGradColor2={linearGradColor2}
+                  setLinearGradColor2={setLinearGradColor2}
+                  showNoise={showNoise}
+                  setShowNoise={setShowNoise}
+                  onGradientChange={(g) => {
+                    if (isGradientEnabled) setGradientBg(g);
+                  }}
+                />
               </div>
             </div>
           </motion.div>
         )}
-      </AnimatePresence >
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,23 +1,44 @@
 'use client';
 import { useState, useEffect } from "react";
 
-export default function GradientPicker({ onGradientChange }) {
-    const [centerX, setCenterX] = useState(50);
-    const [centerY, setCenterY] = useState(50);
-    const [showNoise, setShowNoise] = useState(false);
-    const [colors, setColors] = useState([
-        { color: "#ff0000", stop: 10 },
-        { color: "#00ff00", stop: 60 },
-        { color: "#0000ff", stop: 90 }
-    ]);
+export default function GradientPicker({
+  onGradientChange,
+  colors,
+  setColors,
+  centerX,
+  setCenterX,
+  centerY,
+  setCenterY,
+  linearGradColor1,
+  setLinearGradColor1,
+  linearGradColor2,
+  setLinearGradColor2,
+  showNoise,
+  setShowNoise
+}) {
 
-    const handleUpdate = (x = centerX, y = centerY, newColors = colors, noise = showNoise) => {
-        const gradient = `radial-gradient(at ${x}% ${y}%, ${newColors
+
+    const noiseSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>`;
+
+
+    const handleUpdate = (
+        x = centerX,
+        y = centerY,
+        newColors = colors,
+        noise = showNoise
+    ) => {
+        const gradient = `linear-gradient(0deg, ${linearGradColor1}, ${linearGradColor2}), radial-gradient(at ${x}% ${y}%, ${newColors
             .map((c) => `${c.color} ${c.stop}%`)
             .join(", ")})`;
-        const overlay = noise ? `, url('/nnnoise.svg')` : "";
+
+        const noiseSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>`;
+
+        const overlay = noise ? `, url("${noiseSvg}")` : "";
+
         onGradientChange(gradient + overlay);
     };
+
+
 
     useEffect(() => { handleUpdate(); }, [centerX, centerY, colors, showNoise]);
 
@@ -44,14 +65,13 @@ export default function GradientPicker({ onGradientChange }) {
     };
 
     const copyCSS = () => {
-        const css = `
-  background-image: 
-    linear-gradient(to bottom right, rgba(0, 255, 209, 0.5), rgba(170, 70, 252, 0.69)),
-    radial-gradient(circle at ${centerX}% ${centerY}%, ${colors.map((c) => `${c.color} ${c.stop}%`).join(", ")});
-    background-blend-mode: overlay;
-    ${showNoise ? `background-image: url('/nnnoise.svg');` : ""}
-`;
-        navigator.clipboard.writeText(css);
+        const gradient = `
+            background-image: 
+            linear-gradient(0deg, rgba(0,0,255,1), rgba(0,0,0,0)),
+            radial-gradient(circle at ${centerX}% ${centerY}%, ${colors.map((c) => `${c.color} ${c.stop}%`).join(", ")})
+            ${showNoise ? `, url("${noiseSvg}")` : ""};
+        `;
+        navigator.clipboard.writeText(gradient);
     };
 
     const randomHex = () =>
@@ -107,6 +127,21 @@ export default function GradientPicker({ onGradientChange }) {
                         />
                     </div>
                 </div>
+
+                {/* <div className="text-xs flex items-center space-x-2 text-gray-500 mb-1">Linear Gradient Colors: 
+                    <div className="flex items-center space-x-2">
+                    <input
+                        type="color"
+                        value={linearGradColor1}
+                        onChange={(e) => setLinearGradColor1(e.target.value)}
+                        className="w-8 h-8 cursor-pointer rounded border border-gray-200"></input>
+                    <input
+                        type="color"
+                        value={linearGradColor2}
+                        onChange={(e) => setLinearGradColor2(e.target.value)}
+                        className="w-8 h-8 cursor-pointer rounded border border-gray-200"></input>
+                    </div>
+                </div> */}
 
                 <div className="space-y-2">
                     {colors.map((c, idx) => (
