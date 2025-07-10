@@ -50,8 +50,8 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem("gradient-colors", JSON.stringify(gradientColors));
-    localStorage.setItem("gradientCenterX", gradientCenterX);
-    localStorage.setItem("gradientCenterY", gradientCenterY);
+    localStorage.setItem("gradientCenterX", JSON.stringify(gradientCenterX));
+    localStorage.setItem("gradientCenterY", JSON.stringify(gradientCenterY));
   }, [gradientColors, gradientCenterX, gradientCenterY]);
 
 
@@ -98,6 +98,14 @@ export default function Home() {
             Single Line
           </button>
         </div>
+        
+        <div className="flex bg-white/10 opacity-25 border border-black backdrop-blur-sm rounded-full p-1">
+          <button
+            className={`px-4 py-1 rounded-full text-sm transition-colors `}
+          >
+            Crtl + K
+          </button>
+        </div>
       </div>
 
       {/* Editable Text Area - Cleaner */}
@@ -110,7 +118,6 @@ export default function Home() {
             type="text"
             className="focus:outline-none w-full max-w-3xl text-3xl sm:text-5xl p-2 bg-transparent text-center placeholder-white/50"
             style={{ color: textColor }}
-            placeholder="Type something..."
           />
         )}
         {textType === 1 && (
@@ -118,7 +125,6 @@ export default function Home() {
             className="focus:outline-none w-full max-w-3xl text-xl sm:text-2xl p-2 resize-none bg-transparent text-center placeholder-white/50 leading-relaxed"
             rows={10}
             style={{ color: textColor }}
-            placeholder="Start writing your thoughts..."
           />
         )}
       </div>
