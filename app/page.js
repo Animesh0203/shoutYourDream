@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ColorPicker from "./components/ColorPicker";
 import Button from "./components/button";
-import { Sun, PaintBucket } from "lucide-react";
+import { Sun, PaintBucket, X, ArrowDownUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GradientPicker from "./components/GradientPicker";
 
@@ -38,11 +38,21 @@ export default function Home() {
     if (savedColors) {
       setGradientColors(JSON.parse(savedColors));
     }
+    const savedCenterX = localStorage.getItem("gradientCenterX");
+    if (savedCenterX) {
+      setGradientCenterX(parseInt(savedCenterX, 10));
+    }
+    const savedCenterY = localStorage.getItem("gradientCenterY");
+    if (savedCenterY) {
+      setGradientCenterY(parseInt(savedCenterY, 10));
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem("gradient-colors", JSON.stringify(gradientColors));
-  }, [gradientColors]);
+    localStorage.setItem("gradientCenterX", gradientCenterX);
+    localStorage.setItem("gradientCenterY", gradientCenterY);
+  }, [gradientColors, gradientCenterX, gradientCenterY]);
 
 
   return (
@@ -52,61 +62,69 @@ export default function Home() {
           ? { backgroundImage: gradientBg }
           : { backgroundColor: bgColor }
       }
-      className="relative min-h-screen w-full transition-all"
+      className="relative font-mono min-h-screen w-full transition-colors duration-300"
     >
-      {/* Top Controls */}
-      <div
-        className="absolute flex flex-wrap gap-2 px-4 py-4 sm:px-10 sm:py-10 items-center z-20"
-        style={{ color: textColor }}
-      >
-        <Sun className="cursor-pointer" onClick={flipColors} />
-        <PaintBucket
-          className="cursor-pointer"
+      {/* Top Controls - Simplified */}
+      <div className="absolute top-0 left-0 right-0 flex justify-center gap-4 p-6 z-20">
+        <button
+          onClick={flipColors}
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+          style={{ color: textColor }}
+          aria-label="Flip colors"
+        >
+          <Sun size={20} />
+        </button>
+
+        <button
           onClick={() => setShowColorPicker(!showColorPicker)}
-        />
-        <Button
-          onClick={() => setTextType(1)}
-          text="Paragraph"
-          style={{ color: textColor, backgroundColor: bgColor }}
-          className={`px-3 py-1 rounded-md text-sm ${textType === 1 ? "bg-black text-white" : ""
-            }`}
-        />
-        <Button
-          onClick={() => setTextType(2)}
-          text="Single Line"
-          style={{ color: textColor, backgroundColor: bgColor }}
-          className={`px-3 py-1 rounded-md text-sm ${textType === 2 ? "bg-black text-white" : ""
-            }`}
-        />
+          className="p-2 rounded-full hover:bg-white/10 transition-colors"
+          style={{ color: textColor }}
+          aria-label="Color picker"
+        >
+          <PaintBucket size={20} />
+        </button>
+
+        <div className="flex bg-white/10 border border-black backdrop-blur-sm rounded-full p-1">
+          <button
+            onClick={() => setTextType(1)}
+            className={`px-4 py-1 rounded-full text-sm transition-colors ${textType === 1 ? "bg-white text-gray-900" : "text-white/80 hover:text-white"}`}
+          >
+            Paragraph
+          </button>
+          <button
+            onClick={() => setTextType(2)}
+            className={`px-4 py-1 rounded-full text-sm transition-colors ${textType === 2 ? "bg-white text-gray-900" : "text-white/80 hover:text-white"}`}
+          >
+            Single Line
+          </button>
+        </div>
       </div>
 
-      {/* Editable Text Area */}
+      {/* Editable Text Area - Cleaner */}
       <div
-        className="font-mono min-h-screen flex items-center justify-center p-4 pt-32 sm:pt-40"
-        style={
-          isGradientEnabled && gradientBg
-            ? { backgroundImage: gradientBg, color: textColor }
-            : { backgroundColor: bgColor, color: textColor }
-        }
+        className="font-mono min-h-screen flex items-center justify-center p-4 pt-24"
+        style={{ color: textColor }}
       >
         {textType === 2 && (
           <input
             type="text"
-            className="focus:outline-none w-full max-w-3xl text-2xl sm:text-4xl p-2 bg-transparent"
+            className="focus:outline-none w-full max-w-3xl text-3xl sm:text-5xl p-2 bg-transparent text-center placeholder-white/50"
             style={{ color: textColor }}
+            placeholder="Type something..."
           />
         )}
         {textType === 1 && (
           <textarea
-            className="focus:outline-none w-full max-w-3xl text-xl sm:text-4xl p-2 resize-none bg-transparent"
+            className="focus:outline-none w-full max-w-3xl text-xl sm:text-2xl p-2 resize-none bg-transparent text-center placeholder-white/50 leading-relaxed"
             rows={10}
             style={{ color: textColor }}
+            placeholder="Start writing your thoughts..."
           />
         )}
       </div>
 
-      {/* Color Picker Modal */}
-      <AnimatePresence>
+      {/* Color Picker Modal - Modernized */}
+       <AnimatePresence>
         {showColorPicker && (
           <motion.div
             className="fixed w-full bottom-0 right-0 z-50"
@@ -185,9 +203,10 @@ export default function Home() {
                     `;
 
                   return (
-                    <div
+                    <button
                       key={g.id}
-                      className="w-10 h-10 rounded-md cursor-pointer border border-white/20"
+                      type="button"
+                      className="w-10 h-10 rounded-md cursor-pointer border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500"
                       style={{ backgroundImage: gradientPreview }}
                       onClick={() => {
                         // Load this gradient into the editor
@@ -200,6 +219,7 @@ export default function Home() {
                         setGradientBg(gradientPreview);
                         setIsGradientEnabled(true);
                       }}
+                      aria-label="Select gradient"
                     />
                   );
                 })}
