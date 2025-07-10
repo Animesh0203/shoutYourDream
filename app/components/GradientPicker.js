@@ -2,19 +2,20 @@
 import { useState, useEffect } from "react";
 
 export default function GradientPicker({
-  onGradientChange,
-  colors,
-  setColors,
-  centerX,
-  setCenterX,
-  centerY,
-  setCenterY,
-  linearGradColor1,
-  setLinearGradColor1,
-  linearGradColor2,
-  setLinearGradColor2,
-  showNoise,
-  setShowNoise
+    onGradientChange,
+    colors,
+    setColors,
+    centerX,
+    setCenterX,
+    centerY,
+    setCenterY,
+    linearGradColor1,
+    setLinearGradColor1,
+    linearGradColor2,
+    setLinearGradColor2,
+    showNoise,
+    setShowNoise,
+    saveGradient
 }) {
 
 
@@ -37,8 +38,6 @@ export default function GradientPicker({
 
         onGradientChange(gradient + overlay);
     };
-
-
 
     useEffect(() => { handleUpdate(); }, [centerX, centerY, colors, showNoise]);
 
@@ -67,7 +66,7 @@ export default function GradientPicker({
     const copyCSS = () => {
         const gradient = `
             background-image: 
-            linear-gradient(0deg, rgba(0,0,255,1), rgba(0,0,0,0)),
+            linear-gradient(0deg, rgb(238, 161, 255, 1), rgba(0,0,0,0)),
             radial-gradient(circle at ${centerX}% ${centerY}%, ${colors.map((c) => `${c.color} ${c.stop}%`).join(", ")})
             ${showNoise ? `, url("${noiseSvg}")` : ""};
         `;
@@ -198,6 +197,9 @@ export default function GradientPicker({
                     className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-white hover:bg-gray-700"
                 >
                     Copy CSS
+                </button>
+                <button className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-white hover:bg-gray-700" onClick={saveGradient}>
+                    Save Gradient
                 </button>
             </div>
 

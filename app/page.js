@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ColorPicker from "./components/ColorPicker";
 import Button from "./components/button";
 import { Sun, PaintBucket } from "lucide-react";
@@ -14,6 +14,7 @@ export default function Home() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [gradientBg, setGradientBg] = useState("");
   const [isGradientEnabled, setIsGradientEnabled] = useState(false);
+  const [gradients, setGradients] = useState([]);
 
   // Gradient editor state
   const [gradientColors, setGradientColors] = useState([
@@ -23,7 +24,7 @@ export default function Home() {
   ]);
   const [gradientCenterX, setGradientCenterX] = useState(50);
   const [gradientCenterY, setGradientCenterY] = useState(50);
-  const [linearGradColor1, setLinearGradColor1] = useState("rgba(0,0,255,1)");
+  const [linearGradColor1, setLinearGradColor1] = useState("rgba(235,123,255,1)");
   const [linearGradColor2, setLinearGradColor2] = useState("rgba(0,0,0,0)");
   const [showNoise, setShowNoise] = useState(false);
 
@@ -31,6 +32,18 @@ export default function Home() {
     setBgColor(prev => (prev === "#ffffff" ? "#111111" : "#ffffff"));
     setTextColor(prev => (prev === "#111111" ? "#ffffff" : "#111111"));
   };
+
+  useEffect(() => {
+    const savedColors = localStorage.getItem("gradient-colors");
+    if (savedColors) {
+      setGradientColors(JSON.parse(savedColors));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("gradient-colors", JSON.stringify(gradientColors));
+  }, [gradientColors]);
+
 
   return (
     <div
@@ -121,7 +134,7 @@ export default function Home() {
                     type="checkbox"
                     checked={isGradientEnabled}
                     onChange={(e) => setIsGradientEnabled(e.target.checked)}
-                    className="w-4 h-4 accent-pink-500"
+                    className="w-4 h-4 block accent-pink-500"
                   />
                   <div
                     className="w-6 h-6 rounded-full border border-white"
@@ -143,11 +156,56 @@ export default function Home() {
                   setLinearGradColor2={setLinearGradColor2}
                   showNoise={showNoise}
                   setShowNoise={setShowNoise}
+                  saveGradient={() =>
+                    setGradients(prev => [
+                      ...prev,
+                      {
+                        id: Date.now(),
+                        colors: [...gradientColors],
+                        centerX: gradientCenterX,
+                        centerY: gradientCenterY,
+                        linearGradColor1,
+                        linearGradColor2,
+                        showNoise
+                      }
+                    ])
+                  }
                   onGradientChange={(g) => {
                     if (isGradientEnabled) setGradientBg(g);
                   }}
                 />
+              <div className="flex flex-wrap gap-4 mt-6">
+                {gradients.map((g) => {
+                  const gradientPreview = `
+                      linear-gradient(0deg, ${g.linearGradColor1}, ${g.linearGradColor2}),
+                      radial-gradient(at ${g.centerX}% ${g.centerY}%, ${g.colors
+                                      .map((c) => `${c.color} ${c.stop}%`)
+                                      .join(", ")})
+                      ${g.showNoise ? `, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")` : ""}
+                    `;
+
+                  return (
+                    <div
+                      key={g.id}
+                      className="w-10 h-10 rounded-md cursor-pointer border border-white/20"
+                      style={{ backgroundImage: gradientPreview }}
+                      onClick={() => {
+                        // Load this gradient into the editor
+                        setGradientColors(g.colors);
+                        setGradientCenterX(g.centerX);
+                        setGradientCenterY(g.centerY);
+                        setLinearGradColor1(g.linearGradColor1);
+                        setLinearGradColor2(g.linearGradColor2);
+                        setShowNoise(g.showNoise);
+                        setGradientBg(gradientPreview);
+                        setIsGradientEnabled(true);
+                      }}
+                    />
+                  );
+                })}
               </div>
+              </div>
+
             </div>
           </motion.div>
         )}
