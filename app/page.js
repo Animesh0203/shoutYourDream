@@ -81,8 +81,6 @@ export default function Home() {
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [textType]);
 
-  useKeyPress(["k"], onKeyPress, document);
-
   const flipColors = () => {
     setBgColor(prev => (prev === "#ffffff" ? "#111111" : "#ffffff"));
     setTextColor(prev => (prev === "#111111" ? "#ffffff" : "#111111"));
