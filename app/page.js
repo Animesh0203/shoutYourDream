@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import ColorPicker from "./components/ColorPicker";
-import Button from "./components/button";
 import { Sun, PaintBucket, X, ArrowDownUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GradientPicker from "./components/GradientPicker";
@@ -60,20 +59,27 @@ export default function Home() {
   };
 
 
-  const onKeyPress = (event) => {
-    if (event.ctrlKey && event.key === "k") {
-      event.preventDefault();
-      const input = document.querySelector('input[type="text"]');
-      const textarea = document.querySelector('textarea');
-      if (textType === 2 && input) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      } else if (textType === 1 && textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.ctrlKey && event.key === "k") {
+        event.preventDefault();
+        const input = document.querySelector('input[type="text"]');
+        const textarea = document.querySelector('textarea');
+
+        if (textType === 2 && input) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        } else if (textType === 1 && textarea) {
+          textarea.focus();
+          textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
       }
-    }
-  };
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [textType]);
 
   useKeyPress(["k"], onKeyPress, document);
 
