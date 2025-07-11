@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ColorPicker from "./components/ColorPicker";
 import Button from "./components/button";
 import { Sun, PaintBucket, X, ArrowDownUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import GradientPicker from "./components/GradientPicker";
+import useKeyPress from "./hook/useKeyPress";
 
 export default function Home() {
   const [textType, setTextType] = useState(1);
@@ -27,11 +28,67 @@ export default function Home() {
   const [linearGradColor1, setLinearGradColor1] = useState("rgba(235,123,255,1)");
   const [linearGradColor2, setLinearGradColor2] = useState("rgba(0,0,0,0)");
   const [showNoise, setShowNoise] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const inputRef = useRef();
+  const [paragraphValue, setParagraphValue] = useState('');
+  const textareaRef = useRef(null);
+
+  const handleTextareaChange = (e) => {
+    const text = e.target.value;
+    textareaRef.current.value = text;
+
+    const fits = textareaRef.current.scrollHeight <= textareaRef.current.clientHeight;
+
+    if (fits) {
+      setParagraphValue(text);
+    }
+  };
+
+
+
+  const handleInputChange = (e) => {
+    const text = e.target.value;
+    const style = getComputedStyle(inputRef.current);
+    const font = `${style.fontSize} ${style.fontFamily}`;
+    const textWidth = getPixelLength(text, font);
+
+    if (textType === 2 && textWidth < window.innerWidth - 32) {
+      setInputValue(text);
+    } else if (textType === 1) {
+      setInputValue(text);
+    }
+  };
+
+
+  const onKeyPress = (event) => {
+    if (event.ctrlKey && event.key === "k") {
+      event.preventDefault();
+      const input = document.querySelector('input[type="text"]');
+      const textarea = document.querySelector('textarea');
+      if (textType === 2 && input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      } else if (textType === 1 && textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      }
+    }
+  };
+
+  useKeyPress(["k"], onKeyPress, document);
 
   const flipColors = () => {
     setBgColor(prev => (prev === "#ffffff" ? "#111111" : "#ffffff"));
     setTextColor(prev => (prev === "#111111" ? "#ffffff" : "#111111"));
   };
+
+  const getPixelLength = (text, font) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    context.font = font;
+    return context.measureText(text).width;
+  };
+
 
   useEffect(() => {
     const savedColors = localStorage.getItem("gradient-colors");
@@ -40,11 +97,11 @@ export default function Home() {
     }
     const savedCenterX = localStorage.getItem("gradientCenterX");
     if (savedCenterX) {
-      setGradientCenterX(parseInt(savedCenterX, 10));
+      setGradientCenterX(JSON.parse(savedCenterX));
     }
     const savedCenterY = localStorage.getItem("gradientCenterY");
     if (savedCenterY) {
-      setGradientCenterY(parseInt(savedCenterY, 10));
+      setGradientCenterY(JSON.parse(savedCenterY));
     }
   }, []);
 
@@ -98,7 +155,7 @@ export default function Home() {
             Single Line
           </button>
         </div>
-        
+
         <div className="flex bg-white/10 opacity-25 border border-black backdrop-blur-sm rounded-full p-1">
           <button
             className={`px-4 py-1 rounded-full text-sm transition-colors `}
@@ -116,21 +173,26 @@ export default function Home() {
         {textType === 2 && (
           <input
             type="text"
-            className="focus:outline-none w-full max-w-3xl text-3xl sm:text-5xl p-2 bg-transparent text-center placeholder-white/50"
+            ref={inputRef}
+            value={inputValue}
+            onChange={handleInputChange}
+            className="focus:outline-none w-full text-3xl sm:text-5xl p-2 bg-transparent text-center placeholder-white/50"
             style={{ color: textColor }}
           />
         )}
         {textType === 1 && (
           <textarea
-            className="focus:outline-none w-full max-w-3xl text-xl sm:text-2xl p-2 resize-none bg-transparent text-center placeholder-white/50 leading-relaxed"
-            rows={10}
+            ref={textareaRef}
+            value={paragraphValue}
+            onChange={handleTextareaChange}
+            className="focus:outline-none w-full max-w-3xl text-xl sm:text-4xl p-2 resize-none bg-transparent overflow-y-hidden h-[40vh]"
             style={{ color: textColor }}
           />
         )}
       </div>
 
       {/* Color Picker Modal - Modernized */}
-       <AnimatePresence>
+      <AnimatePresence>
         {showColorPicker && (
           <motion.div
             className="fixed w-full bottom-0 right-0 z-50"
@@ -198,38 +260,38 @@ export default function Home() {
                     if (isGradientEnabled) setGradientBg(g);
                   }}
                 />
-              <div className="flex flex-wrap gap-4 mt-6">
-                {gradients.map((g) => {
-                  const gradientPreview = `
+                <div className="flex flex-wrap gap-4 mt-6">
+                  {gradients.map((g) => {
+                    const gradientPreview = `
                       linear-gradient(0deg, ${g.linearGradColor1}, ${g.linearGradColor2}),
                       radial-gradient(at ${g.centerX}% ${g.centerY}%, ${g.colors
-                                      .map((c) => `${c.color} ${c.stop}%`)
-                                      .join(", ")})
+                        .map((c) => `${c.color} ${c.stop}%`)
+                        .join(", ")})
                       ${g.showNoise ? `, url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 250'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")` : ""}
                     `;
 
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      className="w-10 h-10 rounded-md cursor-pointer border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      style={{ backgroundImage: gradientPreview }}
-                      onClick={() => {
-                        // Load this gradient into the editor
-                        setGradientColors(g.colors);
-                        setGradientCenterX(g.centerX);
-                        setGradientCenterY(g.centerY);
-                        setLinearGradColor1(g.linearGradColor1);
-                        setLinearGradColor2(g.linearGradColor2);
-                        setShowNoise(g.showNoise);
-                        setGradientBg(gradientPreview);
-                        setIsGradientEnabled(true);
-                      }}
-                      aria-label="Select gradient"
-                    />
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        className="w-10 h-10 rounded-md cursor-pointer border border-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        style={{ backgroundImage: gradientPreview }}
+                        onClick={() => {
+                          // Load this gradient into the editor
+                          setGradientColors(g.colors);
+                          setGradientCenterX(g.centerX);
+                          setGradientCenterY(g.centerY);
+                          setLinearGradColor1(g.linearGradColor1);
+                          setLinearGradColor2(g.linearGradColor2);
+                          setShowNoise(g.showNoise);
+                          setGradientBg(gradientPreview);
+                          setIsGradientEnabled(true);
+                        }}
+                        aria-label="Select gradient"
+                      />
+                    );
+                  })}
+                </div>
               </div>
 
             </div>
